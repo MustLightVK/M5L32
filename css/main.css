@@ -74,3 +74,23 @@ p{
     color: white;
     background-color: #0a5b59;
 }
+.message-container {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.message {
+    width: 400px;
+
+    font-size: 24px;
+    font-weight: bold;
+}
+.message.active {
+    padding: 10px;
+    border-radius: 8px; 
+
+    color: #0a5b59;
+    background-color: #98cde0;
+}

@@ -1,6 +1,24 @@
-function battleShipGame(){
+function battleShipGame(difficulty){
     const gridSize = 10;
-    const shipLengths = [5, 4, 3, 3, 2, 2, 1];
+    let shipLengths = [];
+    let totalShips = 0;
+
+    // Определение параметров в зависимости от уровня сложности
+    if (difficulty === 'easy') {
+        shipLengths = [5, 4, 3, 2];
+        totalShips = 4;
+    } else if (difficulty === 'medium') {
+        shipLengths = [5, 4, 3, 3, 2, 2];
+        totalShips = 6;
+    } else if (difficulty === 'hard') {
+        shipLengths = [5, 4, 4, 3, 3, 2, 2, 2];
+        totalShips = 8;
+    } else {
+        // Обработка некорректного уровня сложности, по умолчанию можно выбрать уровень "Начальный"
+        shipLengths = [5, 4, 3, 2];
+        totalShips = 4;
+    }
+
     const gridArray = []; // [Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize),Array(gridSize)]
 
     let isGameStarted = false;
@@ -103,7 +121,6 @@ function battleShipGame(){
             }
 
             if(areBrowserShipsSunk()){
-                alert('Поздравляем, вы победили!')
                 isGameStarted = false;
             }
         }
@@ -111,6 +128,7 @@ function battleShipGame(){
     }
 
     //Функция, которая проверяет, остались ли на поле корабли
+    const messageElement = document.getElementById('message');
 
     function areBrowserShipsSunk(){
         let browserShipsLeft = 0;
@@ -122,11 +140,21 @@ function battleShipGame(){
                 }
             }
         }
-        return browserShipsLeft === 0;
+        
+        if (browserShipsLeft === 0) {
+            messageElement.textContent = 'Поздравляем, вы победили!';
+            messageElement.classList.add('active');
+            return true; // Все корабли потоплены
+        }
+    
+        return false;
     }
 
     document.getElementById('startButton').addEventListener('click', () => {
         isGameStarted = true;
+
+        messageElement.textContent = '';
+        messageElement.classList.remove('active');
 
         gridArray.forEach((row) =>{
             row.forEach((cell) =>{
@@ -138,6 +166,14 @@ function battleShipGame(){
     })
 
     createGrid(document.getElementById('grid'));
+
+    // Добавляем обработчик выбора уровня сложности из выпадающего списка
+    document.getElementById('difficultySelect').addEventListener('change', (event) => {
+        const selectedDifficulty = event.target.value;
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        battleShipGame(selectedDifficulty); 
+    });
 }
 
 battleShipGame();

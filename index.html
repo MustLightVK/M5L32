@@ -8,15 +8,20 @@
     <script defer src="js/main.js"></script>
 </head>
 <body>
-    <div class="difficulty-container">
-        <p>Уровень сложности</p>
-        <select id="difficultySelect">
-            <option value="easy">Начальный</option>
-            <option value="medium">Средний</option>
-            <option value="hard">Профессионал</option>
-        </select>
+    <div class="container">
+        <div class="difficulty-container">
+            <p>Уровень сложности</p>
+            <select id="difficultySelect">
+                <option value="easy">Начальный</option>
+                <option value="medium">Средний</option>
+                <option value="hard">Профессионал</option>
+            </select>
+        </div>
+        <button id="startButton">Начать игру</button>
+        <div class="grid-container" id="grid"></div>
+        <div class="message-container">
+            <p class="message" id="message"></p>
+        </div>        
     </div>
-    <button id="startButton">Начать игру</button>
-    <div class="grid-container" id="grid"></div>
 </body>
 </html>
