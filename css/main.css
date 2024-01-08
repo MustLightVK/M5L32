@@ -43,9 +43,9 @@ p{
     background-color: #98cde0;
     border: 1px solid #000;
 }
-/* .ship{
+.ship{
     background: #f9b455;
-} */
+}
 .grid-item.shot{
     cursor: default;
 }

@@ -40,16 +40,23 @@ function battleShipGame(difficulty){
     }
 
     //Функция для размещения кораблей браузера на поле
-    function placeBrowserShips(){
+    function placeBrowserShips(difficulty){
         for (const length of shipLengths) {
             let shipPlaced = false;
             while(!shipPlaced){
-                const horizontal = Math.random() < 0.5; //случайный выбор ориентации корабля 50 на 50
+                const horizontal = Math.random() < 0.5;
                 const xMax = horizontal ? gridSize - length : gridSize;
                 const yMax = horizontal ? gridSize : gridSize - length;
                 const x = Math.floor(Math.random() * xMax);
                 const y = Math.floor(Math.random() * yMax);
-                if(canPlaceShip(x, y, horizontal, length)){
+
+                if (difficulty === 'easy' && canPlaceShipEasy(x, y, horizontal, length)) {
+                    placeShip(x, y, horizontal, length);
+                    shipPlaced = true;
+                } else if (difficulty === 'medium' && canPlaceShipMedium(x, y, horizontal, length)) {
+                    placeShip(x, y, horizontal, length);
+                    shipPlaced = true;
+                } else if (difficulty === 'hard' && canPlaceShipHard(x, y, horizontal, length)) {
                     placeShip(x, y, horizontal, length);
                     shipPlaced = true;
                 }
@@ -57,38 +64,82 @@ function battleShipGame(difficulty){
         }
     }
 
-    //Функция для проверки возможности расположения корабля
-    function canPlaceShip(x, y, horizontal, length){
+    //Функции для проверки возможности расположения корабля
+    function canPlaceShipEasy(x, y, horizontal, length) {
         if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
             return false;
         }
+    
         if (horizontal) {
             if(x + length > gridSize) {
                 return false;
-            } else {
-                if (y + length > gridSize) {
+            }
+            for (let i = x; i < x + length; i++) {
+                if (gridArray[y][i] && gridArray[y][i].classList.contains('ship')) {
+                    return false;
+                }
+            }
+        } else {
+            if (y + length > gridSize) {
+                return false;
+            }
+            for (let i = y; i < y + length; i++) {
+                if (gridArray[i][x] && gridArray[i][x].classList.contains('ship')) {
                     return false;
                 }
             }
         }
-
-        for (let counter = -1; counter < length; counter++){
-            for (let counter2 = -1; counter2 <=1; counter2++) {
-                const row = gridArray[y + counter];
-                if (!row) continue;
-
-                for(let counter3 = -1; counter3 <= 1; counter3++) {
-                    const cell = row[x + counter2 + counter3];
-                    if (cell  && cell.classList.contains('ship')){
+    
+        return true;
+    }    
+    
+    function canPlaceShipMedium(x, y, horizontal, length) {
+        if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
+            return false;
+        }
+    
+        if (horizontal) {
+            if(x + length > gridSize) {
+                return false;
+            }
+            for (let i = x - 1; i < x + length + 1; i++) {
+                for (let j = y - 1; j <= y + 1; j++) {
+                    if (gridArray[j] && gridArray[j][i] && gridArray[j][i].classList.contains('ship')) {
+                        return false;
+                    }
+                }
+            }
+        } else {
+            if (y + length > gridSize) {
+                return false;
+            }
+            for (let i = y - 1; i < y + length + 1; i++) {
+                for (let j = x - 1; j <= x + 1; j++) {
+                    if (gridArray[i] && gridArray[i][j] && gridArray[i][j].classList.contains('ship')) {
                         return false;
                     }
                 }
             }
         }
-
+    
         return true;
-
-    }
+    }    
+    
+    function canPlaceShipHard(x, y, horizontal, length) {
+        if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
+            return false;
+        }
+    
+        for (let i = y - 1; i < y + length + 1; i++) {
+            for (let j = x - 1; j < x + length + 1; j++) {
+                if (gridArray[i] && gridArray[i][j] && gridArray[i][j].classList.contains('ship')) {
+                    return false;
+                }
+            }
+        }
+    
+        return true;
+    }    
 
     function placeShip(x, y, horizontal, length){
         for (let counter = 0; counter < length; counter++) {
@@ -158,11 +209,13 @@ function battleShipGame(difficulty){
 
         gridArray.forEach((row) =>{
             row.forEach((cell) =>{
-                cell.classList.remove('shot', 'hit', 'miss', 'ship')
-                cell.addEventListener('click', gridItemClick)
+                cell.classList.remove('shot', 'hit', 'miss', 'ship');
+                cell.removeEventListener('click', gridItemClick);
+                cell.addEventListener('click', gridItemClick);
             })
         })
-        placeBrowserShips();
+        const selectedDifficulty = document.getElementById('difficultySelect').value;
+        placeBrowserShips(selectedDifficulty);
     })
 
     createGrid(document.getElementById('grid'));
