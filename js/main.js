@@ -39,6 +39,21 @@ function battleShipGame(difficulty){
         }
     }
 
+    function createComputerGrid(grid){
+        for(let count = 0; count < gridSize; count++) {
+            const row = [];
+            for (let count2 = 0; count2 < gridSize; count2++) {
+                const cell = document.createElement('div');
+                cell.classList.add('gridComputer-item');
+                cell.setAttribute('data-x', count2);
+                cell.setAttribute('data-y', count);
+                grid.appendChild(cell);
+                row.push(cell);
+            }
+            gridArray.push(row);
+        }
+    }
+
     //Функция для размещения кораблей браузера на поле
     function placeBrowserShips(difficulty){
         for (const length of shipLengths) {
@@ -319,11 +334,14 @@ function battleShipGame(difficulty){
     })
 
     createGrid(document.getElementById('grid'));
+    createComputerGrid(document.getElementById('computerGrid'));
 
     document.getElementById('difficultySelect').addEventListener('change', (event) => {
         const selectedDifficulty = event.target.value;
         const grid = document.getElementById('grid');
+        const computerGrid = document.getElementById('computerGrid');
         grid.innerHTML = '';
+        computerGrid.innerHTML = '';
         battleShipGame(selectedDifficulty); 
     });
 }
