@@ -25,13 +25,13 @@ function battleShipGame(difficulty){
 
     //Функция для игрового поля
     function createGrid(grid){
-        for(let i = 0; i < gridSize; i++) {
+        for(let count = 0; count < gridSize; count++) {
             const row = [];
-            for (let j = 0; j < gridSize; j++) {
+            for (let count2 = 0; count2 < gridSize; count2++) {
                 const cell = document.createElement('div');
                 cell.classList.add('grid-item');
-                cell.setAttribute('data-x', j);
-                cell.setAttribute('data-y', i);
+                cell.setAttribute('data-x', count2);
+                cell.setAttribute('data-y', count);
                 grid.appendChild(cell);
                 row.push(cell);
             }
@@ -70,22 +70,32 @@ function battleShipGame(difficulty){
             return false;
         }
     
+        const isCellEmpty = (count, count2) => {
+            return count >= 0 && count < gridSize && count2 >= 0 && count2 < gridSize && !gridArray[count2][count].classList.contains('ship');
+        };
+    
         if (horizontal) {
-            if(x + length > gridSize) {
+            if (x + length > gridSize) {
                 return false;
             }
-            for (let i = x; i < x + length; i++) {
-                if (gridArray[y][i] && gridArray[y][i].classList.contains('ship')) {
-                    return false;
+    
+            for (let count = x - 1; count < x + length + 1; count++) {
+                for (let count2 = y - 1; count2 < y + 2; count2++) {
+                    if (!isCellEmpty(count, count2)) {
+                        return false;
+                    }
                 }
             }
         } else {
             if (y + length > gridSize) {
                 return false;
             }
-            for (let i = y; i < y + length; i++) {
-                if (gridArray[i][x] && gridArray[i][x].classList.contains('ship')) {
-                    return false;
+    
+            for (let count = y - 1; count < y + length + 1; count++) {
+                for (let count2 = x - 1; count2 < x + 2; count2++) {
+                    if (!isCellEmpty(count2, count)) {
+                        return false;
+                    }
                 }
             }
         }
@@ -102,9 +112,10 @@ function battleShipGame(difficulty){
             if(x + length > gridSize) {
                 return false;
             }
-            for (let i = x - 1; i < x + length + 1; i++) {
-                for (let j = y - 1; j <= y + 1; j++) {
-                    if (gridArray[j] && gridArray[j][i] && gridArray[j][i].classList.contains('ship')) {
+            for (let count = x - 1; count < x + length + 1; count++) {
+                for (let count2 = y - 1; count2 <= y + 1; count2++) {
+                    if ((count === x - 1 || count === x + length || count2 === y - 1 || count2 === y + 1) &&
+                        gridArray[count2] && gridArray[count2][count] && gridArray[count2][count].classList.contains('ship')) {
                         return false;
                     }
                 }
@@ -113,14 +124,15 @@ function battleShipGame(difficulty){
             if (y + length > gridSize) {
                 return false;
             }
-            for (let i = y - 1; i < y + length + 1; i++) {
-                for (let j = x - 1; j <= x + 1; j++) {
-                    if (gridArray[i] && gridArray[i][j] && gridArray[i][j].classList.contains('ship')) {
+            for (let count = y - 1; count < y + length + 1; count++) {
+                for (let count2 = x - 1; count2 <= x + 1; count2++) {
+                    if ((count === y - 1 || count === y + length || count2 === x - 1 || count2 === x + 1) &&
+                        gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
                         return false;
                     }
                 }
             }
-        }
+        }        
     
         return true;
     }    
@@ -130,23 +142,52 @@ function battleShipGame(difficulty){
             return false;
         }
     
-        for (let i = y - 1; i < y + length + 1; i++) {
-            for (let j = x - 1; j < x + length + 1; j++) {
-                if (gridArray[i] && gridArray[i][j] && gridArray[i][j].classList.contains('ship')) {
-                    return false;
+        
+        if (horizontal) {
+            if (x + length > gridSize) {
+                return false; 
+            }
+            for (let count = y - 1; count < y + 2; count++) {
+                for (let count2 = x - 1; count2 < x + length + 1; count2++) {
+                    if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
+                        return false; 
+                    }
+                }
+            }
+        } else { 
+            if (y + length > gridSize) {
+                return false; 
+            }
+            for (let count = y - 1; count < y + length + 1; count++) {
+                for (let count2 = x - 1; count2 < x + 2; count2++) {
+                    if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
+                        return false; 
+                    }
+                }
+            }
+        }
+    
+        // Проверка углов
+        for (let count = y - 1; count < y + length + 1; count++) {
+            for (let count2 = x - 1; count2 < x + length + 1; count2++) {
+                if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
+                    return false; 
                 }
             }
         }
     
         return true;
-    }    
+    }
+    
+    
+    
 
     function placeShip(x, y, horizontal, length){
-        for (let counter = 0; counter < length; counter++) {
+        for (let count = 0; count < length; count++) {
             if (horizontal) {
-                gridArray[y][x + counter].classList.add('ship')
+                gridArray[y][x + count].classList.add('ship')
             } else {
-                gridArray[y + counter][x].classList.add('ship')
+                gridArray[y + count][x].classList.add('ship')
             }
         }
     }
@@ -160,22 +201,81 @@ function battleShipGame(difficulty){
     }
 
     //Функция для обработки клика
-    function gridItemClick(event){
-        if(isGameStarted){
+    function gridItemClick(event) {
+        if (isGameStarted) {
             const cell = event.target;
             const x = parseInt(cell.getAttribute('data-x'), 10);
-            const y = parseInt(cell.getAttribute('data-y'), 10);            
-            if (!cell.classList.contains('ship')) {
-                renderShotResults(x, y, 'miss')
-            } else {
-                renderShotResults(x, y, 'hit')
-            }
-
-            if(areBrowserShipsSunk()){
-                isGameStarted = false;
+            const y = parseInt(cell.getAttribute('data-y'), 10);
+            if (!cell.classList.contains('shot')) {
+                if (!cell.classList.contains('ship')) {
+                    renderShotResults(x, y, 'miss');
+                } else {
+                    renderShotResults(x, y, 'hit');
+                    const shipCells = findShipCells(x, y);
+                    if (shipCells.length > 0 && isShipSunk(shipCells)) {
+                        markSurroundingCells(shipCells);
+                    }
+                    if (areBrowserShipsSunk()) {
+                        isGameStarted = false;
+                    }
+                }
             }
         }
+    }
 
+    function findShipCells(x, y) {
+        const shipCells = [];
+        if (gridArray[y][x].classList.contains('ship')) {
+            shipCells.push({ x, y });
+            let left = x - 1,
+                right = x + 1,
+                up = y - 1,
+                down = y + 1;
+    
+            while (left >= 0 && gridArray[y][left].classList.contains('ship')) {
+                shipCells.push({ x: left, y });
+                left--;
+            }
+            while (right < gridSize && gridArray[y][right].classList.contains('ship')) {
+                shipCells.push({ x: right, y });
+                right++;
+            }
+            while (up >= 0 && gridArray[up][x].classList.contains('ship')) {
+                shipCells.push({ x, y: up });
+                up--;
+            }
+            while (down < gridSize && gridArray[down][x].classList.contains('ship')) {
+                shipCells.push({ x, y: down });
+                down++;
+            }
+        }
+        return shipCells;
+    }
+    
+    // Функция для проверки, был ли потоплен корабль
+    function isShipSunk(shipCells) {
+        for (const { x, y } of shipCells) {
+            if (!gridArray[y][x].classList.contains('hit')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Функция для маркировки ячеек вокруг потопленного корабля как промахи
+    function markSurroundingCells(shipCells) {
+        shipCells.forEach(({ x, y }) => {
+            for (let count = y - 1; count <= y + 1; count++) {
+                for (let count2 = x - 1; count2 <= x + 1; count2++) {
+                    if (count >= 0 && count < gridSize && count2 >= 0 && count2 < gridSize) {
+                        const cell = gridArray[count][count2];
+                        if (!cell.classList.contains('shot')) {
+                            renderShotResults(count2, count, 'miss');
+                        }
+                    }
+                }
+            }
+        });
     }
 
     //Функция, которая проверяет, остались ли на поле корабли
@@ -220,7 +320,6 @@ function battleShipGame(difficulty){
 
     createGrid(document.getElementById('grid'));
 
-    // Добавляем обработчик выбора уровня сложности из выпадающего списка
     document.getElementById('difficultySelect').addEventListener('change', (event) => {
         const selectedDifficulty = event.target.value;
         const grid = document.getElementById('grid');
