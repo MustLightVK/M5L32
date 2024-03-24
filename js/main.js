@@ -48,13 +48,7 @@ function placeBrowserShips(difficulty){
             const x = Math.floor(Math.random() * xMax);
             const y = Math.floor(Math.random() * yMax);
 
-            if (difficulty === 'easy' && canPlaceShipEasy(x, y, horizontal, length)) {
-                placeShip(x, y, horizontal, length);
-                shipPlaced = true;
-            } else if (difficulty === 'medium' && canPlaceShipMedium(x, y, horizontal, length)) {
-                placeShip(x, y, horizontal, length);
-                shipPlaced = true;
-            } else if (difficulty === 'hard' && canPlaceShipHard(x, y, horizontal, length)) {
+            if (canPlaceShip(x, y, horizontal, length, difficulty)) {
                 placeShip(x, y, horizontal, length);
                 shipPlaced = true;
             }
@@ -62,123 +56,76 @@ function placeBrowserShips(difficulty){
     }
 }
 
-//Функции для проверки возможности расположения корабля
-function canPlaceShipEasy(x, y, horizontal, length) {
-    if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
+
+function canPlaceShip(x, y, horizontal, length, difficulty) {
+    if (x < 0 || x >= gridSize || y >= gridSize || y < 0) {
         return false;
     }
 
-    const isCellEmpty = (count, count2) => {
-        return count >= 0 && count < gridSize && count2 >= 0 && count2 < gridSize && !gridArray[count2][count].classList.contains('ship');
+    const checkCell = (x, y) => {
+        return x >= 0 && x < gridSize && y >= 0 && y < gridSize && !gridArray[y][x].classList.contains('ship');
     };
 
-    if (horizontal) {
-        if (x + length > gridSize) {
+    let dx = [0, 1, 0, -1];
+    let dy = [-1, 0, 1, 0];
+
+    // Для уровня "Профессионал" добавляем проверку углов
+    if (difficulty === 'hard') {
+        dx.push(-1, 1, 1, -1);
+        dy.push(-1, -1, 1, 1);
+    }
+
+    for (let i = 0; i < length; i++) {
+        let nx = horizontal ? x + i : x;
+        let ny = horizontal ? y : y + i;
+
+        if (!checkCell(nx, ny)) {
             return false;
         }
 
-        for (let count = x - 1; count < x + length + 1; count++) {
-            for (let count2 = y - 1; count2 < y + 2; count2++) {
-                if (!isCellEmpty(count, count2)) {
-                    return false;
-                }
-            }
-        }
-    } else {
-        if (y + length > gridSize) {
-            return false;
-        }
-
-        for (let count = y - 1; count < y + length + 1; count++) {
-            for (let count2 = x - 1; count2 < x + 2; count2++) {
-                if (!isCellEmpty(count2, count)) {
-                    return false;
+        // Для уровня "Начальный" проверяем, что корабли не соприкасаются ни по горизонтали, ни по вертикали
+        if (difficulty === 'easy') {
+            for (let i = -1; i <= length; i++) {
+                for (let j = -1; j <= 1; j += 2) {
+                    let cx = horizontal ? x + i : x + j;
+                    let cy = horizontal ? y + j : y + i;
+                    if (cx >= 0 && cx < gridSize && cy >= 0 && cy < gridSize && gridArray[cy][cx].classList.contains('ship')) {
+                        return false;
+                    }
                 }
             }
         }
     }
 
-    return true;
-}    
+    // Для уровня "Средний" и "Профессионал" разрешаем соприкосновение сторонами, но не углами для "Средний"
+    if (difficulty === 'medium' || difficulty === 'hard') {
+        for (let i = -1; i <= length; i++) {
+            for (let j = -1; j <= 1; j += 2) {
+                let nx = horizontal ? x + i : x + j;
+                let ny = horizontal ? y + j : y + i;
 
-function canPlaceShipMedium(x, y, horizontal, length) {
-    if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
-        return false;
-    }
-
-    if (horizontal) {
-        if(x + length > gridSize) {
-            return false;
-        }
-        for (let count = x - 1; count < x + length + 1; count++) {
-            for (let count2 = y - 1; count2 <= y + 1; count2++) {
-                if ((count === x - 1 || count === x + length || count2 === y - 1 || count2 === y + 1) &&
-                    gridArray[count2] && gridArray[count2][count] && gridArray[count2][count].classList.contains('ship')) {
-                    return false;
+                // Проверяем только границы вокруг корабля
+                if (i === -1 || i === length) {
+                    if (!checkCell(nx, ny) && difficulty === 'medium') {
+                        return false;
+                    }
+                } else {
+                    if (horizontal) {
+                        if (!checkCell(x + i, y - 1) || !checkCell(x + i, y + 1)) {
+                            return false;
+                        }
+                    } else {
+                        if (!checkCell(x - 1, y + i) || !checkCell(x + 1, y + i)) {
+                            return false;
+                        }
+                    }
                 }
-            }
-        }
-    } else {
-        if (y + length > gridSize) {
-            return false;
-        }
-        for (let count = y - 1; count < y + length + 1; count++) {
-            for (let count2 = x - 1; count2 <= x + 1; count2++) {
-                if ((count === y - 1 || count === y + length || count2 === x - 1 || count2 === x + 1) &&
-                    gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
-                    return false;
-                }
-            }
-        }
-    }        
-
-    return true;
-}    
-
-function canPlaceShipHard(x, y, horizontal, length) {
-    if (x < 0 || x >= gridSize || y >= gridSize || y < 0){
-        return false;
-    }
-
-    
-    if (horizontal) {
-        if (x + length > gridSize) {
-            return false; 
-        }
-        for (let count = y - 1; count < y + 2; count++) {
-            for (let count2 = x - 1; count2 < x + length + 1; count2++) {
-                if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
-                    return false; 
-                }
-            }
-        }
-    } else { 
-        if (y + length > gridSize) {
-            return false; 
-        }
-        for (let count = y - 1; count < y + length + 1; count++) {
-            for (let count2 = x - 1; count2 < x + 2; count2++) {
-                if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
-                    return false; 
-                }
-            }
-        }
-    }
-
-    // Проверка углов
-    for (let count = y - 1; count < y + length + 1; count++) {
-        for (let count2 = x - 1; count2 < x + length + 1; count2++) {
-            if (gridArray[count] && gridArray[count][count2] && gridArray[count][count2].classList.contains('ship')) {
-                return false; 
             }
         }
     }
 
     return true;
 }
-
-
-
 
 function placeShip(x, y, horizontal, length){
     for (let count = 0; count < length; count++) {
