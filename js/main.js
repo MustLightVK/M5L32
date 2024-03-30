@@ -225,34 +225,6 @@ function markSurroundingCells(shipCells) {
         }
     });
 }
-function checkCornerOverlap(shipCells, x, y) {
-    for (const { x: shipX, y: shipY } of shipCells) {
-        if (Math.abs(shipX - x) === 1 && Math.abs(shipY - y) === 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function markCornerCells(shipCells, x, y, markedCells) {
-    const corners = [
-        { dx: -1, dy: -1 },
-        { dx: 1, dy: -1 },
-        { dx: -1, dy: 1 },
-        { dx: 1, dy: 1 },
-    ];
-    corners.forEach(({ dx, dy }) => {
-        const cornerX = x + dx;
-        const cornerY = y + dy;
-        if (cornerX >= 0 && cornerX < GRID_SIZE && cornerY >= 0 && cornerY < GRID_SIZE) {
-            const cornerCell = gridArray[cornerY][cornerX];
-            if (!cornerCell.classList.contains('shot')) {
-                renderShotResults(cornerX, cornerY, 'miss');
-                markedCells.add(`${cornerX},${cornerY}`);
-            }
-        }
-    });
-}
 
 function areBrowserShipsSunk(){
     let browserShipsLeft = 0;
