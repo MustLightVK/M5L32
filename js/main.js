@@ -1,23 +1,23 @@
-const gridSize = 10;
+const GRID_SIZE = 10;
 let gridArray = [];
 let shipLengths = [];
 let totalShips = 0;
 let isGameStarted = false;
 const messageElement = document.getElementById('message');
 
-function createGrid(grid) {
-    gridArray = []; // Очищаем массив при создании новой сетки
-    for (let count = 0; count < gridSize; count++) {
-        const row = [];
-        for (let count2 = 0; count2 < gridSize; count2++) {
+function createGrid(gridElement) {
+    gridArray = []; 
+    for (let row = 0; row < GRID_SIZE; row++) {
+        const gridRow = [];
+        for (let col = 0; col < GRID_SIZE; col++) {
             const cell = document.createElement('div');
             cell.classList.add('grid-item');
-            cell.setAttribute('data-x', count2);
-            cell.setAttribute('data-y', count);
-            grid.appendChild(cell);
-            row.push(cell);
+            cell.setAttribute('data-x', col);
+            cell.setAttribute('data-y', row);
+            gridElement.appendChild(cell);
+            gridRow.push(cell);
         }
-        gridArray.push(row);
+        gridArray.push(gridRow);
     }
 }
 
@@ -37,14 +37,13 @@ function setDifficulty(difficulty) {
     }
 }
 
-//Функция для размещения кораблей браузера на поле
-function placeBrowserShips(difficulty){
+function placeBrowserShips(difficulty) {
     for (const length of shipLengths) {
         let shipPlaced = false;
-        while(!shipPlaced){
+        while (!shipPlaced) {
             const horizontal = Math.random() < 0.5;
-            const xMax = horizontal ? gridSize - length : gridSize;
-            const yMax = horizontal ? gridSize : gridSize - length;
+            const xMax = horizontal ? GRID_SIZE - length : GRID_SIZE;
+            const yMax = horizontal ? GRID_SIZE : GRID_SIZE - length;
             const x = Math.floor(Math.random() * xMax);
             const y = Math.floor(Math.random() * yMax);
 
@@ -56,40 +55,41 @@ function placeBrowserShips(difficulty){
     }
 }
 
-
 function canPlaceShip(x, y, horizontal, length, difficulty) {
-    if (x < 0 || x >= gridSize || y >= gridSize || y < 0) {
+    // Проверка, что корабль не выходит за границы игрового поля
+    if (x < 0 || x >= GRID_SIZE || y >= GRID_SIZE || y < 0) {
         return false;
     }
 
-    const checkCell = (x, y) => {
-        return x >= 0 && x < gridSize && y >= 0 && y < gridSize && !gridArray[y][x].classList.contains('ship');
+    const isCellEmpty = (x, y) => {
+        // Проверка, что клетка пуста и не содержит другие корабли
+        return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && !gridArray[y][x].classList.contains('ship');
     };
 
     let dx = [0, 1, 0, -1];
     let dy = [-1, 0, 1, 0];
 
-    // Для уровня "Профессионал" добавляем проверку углов
+    // Добавление проверки углов для уровня сложности "hard"
     if (difficulty === 'hard') {
         dx.push(-1, 1, 1, -1);
         dy.push(-1, -1, 1, 1);
     }
 
     for (let i = 0; i < length; i++) {
-        let nx = horizontal ? x + i : x;
-        let ny = horizontal ? y : y + i;
+        let nextX = horizontal ? x + i : x;
+        let nextY = horizontal ? y : y + i;
 
-        if (!checkCell(nx, ny)) {
+        if (!isCellEmpty(nextX, nextY)) {
             return false;
         }
 
-        // Для уровня "Начальный" проверяем, что корабли не соприкасаются ни по горизонтали, ни по вертикали
+        // Проверка смежности с другими кораблями для уровня сложности "easy"
         if (difficulty === 'easy') {
-            for (let i = -1; i <= length; i++) {
-                for (let j = -1; j <= 1; j += 2) {
-                    let cx = horizontal ? x + i : x + j;
-                    let cy = horizontal ? y + j : y + i;
-                    if (cx >= 0 && cx < gridSize && cy >= 0 && cy < gridSize && gridArray[cy][cx].classList.contains('ship')) {
+            for (let count1 = -1; count1 <= length; count1++) {
+                for (let count2 = -1; count2 <= 1; count2 += 2) {
+                    let checkX = horizontal ? x + count1 : x + count2;
+                    let checkY = horizontal ? y + count2 : y + count1;
+                    if (checkX >= 0 && checkX < GRID_SIZE && checkY >= 0 && checkY < GRID_SIZE && gridArray[checkY][checkX].classList.contains('ship')) {
                         return false;
                     }
                 }
@@ -97,25 +97,25 @@ function canPlaceShip(x, y, horizontal, length, difficulty) {
         }
     }
 
-    // Для уровня "Средний" и "Профессионал" разрешаем соприкосновение сторонами, но не углами для "Средний"
+    /// Разрешение боковой смежности, но не смежности углов для уровней сложности "medium" и "hard"
     if (difficulty === 'medium' || difficulty === 'hard') {
-        for (let i = -1; i <= length; i++) {
-            for (let j = -1; j <= 1; j += 2) {
-                let nx = horizontal ? x + i : x + j;
-                let ny = horizontal ? y + j : y + i;
+        for (let count1 = -1; count1 <= length; count1++) {
+            for (let count2 = -1; count2 <= 1; count2 += 2) {
+                let checkX = horizontal ? x + count1 : x + count2;
+                let checkY = horizontal ? y + count2 : y + count1;
 
-                // Проверяем только границы вокруг корабля
-                if (i === -1 || i === length) {
-                    if (!checkCell(nx, ny) && difficulty === 'medium') {
+                // Проверка только границ вокруг корабля
+                if (count1 === -1 || count1 === length) {
+                    if (!isCellEmpty(checkX, checkY) && difficulty === 'medium') {
                         return false;
                     }
                 } else {
                     if (horizontal) {
-                        if (!checkCell(x + i, y - 1) || !checkCell(x + i, y + 1)) {
+                        if (!isCellEmpty(x + count1, y - 1) || !isCellEmpty(x + count1, y + 1)) {
                             return false;
                         }
                     } else {
-                        if (!checkCell(x - 1, y + i) || !checkCell(x + 1, y + i)) {
+                        if (!isCellEmpty(x - 1, y + count1) || !isCellEmpty(x + 1, y + count1)) {
                             return false;
                         }
                     }
@@ -130,14 +130,14 @@ function canPlaceShip(x, y, horizontal, length, difficulty) {
 function placeShip(x, y, horizontal, length){
     for (let count = 0; count < length; count++) {
         if (horizontal) {
-            gridArray[y][x + count].classList.add('ship')
+            gridArray[y][x + count].classList.add('ship');
         } else {
-            gridArray[y + count][x].classList.add('ship')
+            gridArray[y + count][x].classList.add('ship');
         }
     }
 }
 
-//Функция отображения результата выстрела
+// Функция отображения результата выстрела
 function renderShotResults(x, y, result) {
     const cell = gridArray[y][x];
     cell.classList.add(result);
@@ -145,7 +145,7 @@ function renderShotResults(x, y, result) {
     cell.removeEventListener('click', gridItemClick);
 }
 
-//Функция для обработки клика
+// Функция для обработки клика по элементу сетки
 function gridItemClick(event) {
     if (isGameStarted) {
         const cell = event.target;
@@ -167,7 +167,6 @@ function gridItemClick(event) {
         }
     }
 }
-
 function findShipCells(x, y) {
     const shipCells = [];
     if (gridArray[y][x].classList.contains('ship')) {
@@ -181,7 +180,7 @@ function findShipCells(x, y) {
             shipCells.push({ x: left, y });
             left--;
         }
-        while (right < gridSize && gridArray[y][right].classList.contains('ship')) {
+        while (right < GRID_SIZE && gridArray[y][right].classList.contains('ship')) {
             shipCells.push({ x: right, y });
             right++;
         }
@@ -189,7 +188,7 @@ function findShipCells(x, y) {
             shipCells.push({ x, y: up });
             up--;
         }
-        while (down < gridSize && gridArray[down][x].classList.contains('ship')) {
+        while (down < GRID_SIZE && gridArray[down][x].classList.contains('ship')) {
             shipCells.push({ x, y: down });
             down++;
         }
@@ -197,7 +196,7 @@ function findShipCells(x, y) {
     return shipCells;
 }
 
-// Функция для проверки, был ли потоплен корабль
+// Функция для проверки того, не затонул ли корабль
 function isShipSunk(shipCells) {
     for (const { x, y } of shipCells) {
         if (!gridArray[y][x].classList.contains('hit')) {
@@ -207,17 +206,49 @@ function isShipSunk(shipCells) {
     return true;
 }
 
-// Функция для маркировки ячеек вокруг потопленного корабля как промахи
+// Функция, позволяющая помечать окружающие ячейки затонувшего корабля как пропущенные
 function markSurroundingCells(shipCells) {
+    const markedCells = new Set(); // Создаем набор для отслеживания уже помеченных ячеек
     shipCells.forEach(({ x, y }) => {
-        for (let count = y - 1; count <= y + 1; count++) {
+        for (let count1 = y - 1; count1 <= y + 1; count1++) {
             for (let count2 = x - 1; count2 <= x + 1; count2++) {
-                if (count >= 0 && count < gridSize && count2 >= 0 && count2 < gridSize) {
-                    const cell = gridArray[count][count2];
-                    if (!cell.classList.contains('shot')) {
-                        renderShotResults(count2, count, 'miss');
+                if (count1 >= 0 && count1 < GRID_SIZE && count2 >= 0 && count2 < GRID_SIZE) {
+                    if (!markedCells.has(`${count2},${count1}`)) {
+                        const cell = gridArray[count1][count2];
+                        if (!cell.classList.contains('shot') && !cell.classList.contains('ship')) {
+                            renderShotResults(count2, count1, 'miss');
+                            markedCells.add(`${count2},${count1}`);
+                        }
                     }
                 }
+            }
+        }
+    });
+}
+function checkCornerOverlap(shipCells, x, y) {
+    for (const { x: shipX, y: shipY } of shipCells) {
+        if (Math.abs(shipX - x) === 1 && Math.abs(shipY - y) === 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function markCornerCells(shipCells, x, y, markedCells) {
+    const corners = [
+        { dx: -1, dy: -1 },
+        { dx: 1, dy: -1 },
+        { dx: -1, dy: 1 },
+        { dx: 1, dy: 1 },
+    ];
+    corners.forEach(({ dx, dy }) => {
+        const cornerX = x + dx;
+        const cornerY = y + dy;
+        if (cornerX >= 0 && cornerX < GRID_SIZE && cornerY >= 0 && cornerY < GRID_SIZE) {
+            const cornerCell = gridArray[cornerY][cornerX];
+            if (!cornerCell.classList.contains('shot')) {
+                renderShotResults(cornerX, cornerY, 'miss');
+                markedCells.add(`${cornerX},${cornerY}`);
             }
         }
     });
@@ -225,9 +256,9 @@ function markSurroundingCells(shipCells) {
 
 function areBrowserShipsSunk(){
     let browserShipsLeft = 0;
-    for(let count = 0; count < gridSize; count++){
-        for(let count2 = 0; count2 < gridSize; count2++){
-            const cell = gridArray[count][count2];
+    for(let count1 = 0; count1 < GRID_SIZE; count1++){
+        for(let count2 = 0; count2 < GRID_SIZE; count2++){
+            const cell = gridArray[count1][count2];
             if(cell.classList.contains('ship') && !cell.classList.contains('hit')) {
                 browserShipsLeft++;
             }
@@ -235,14 +266,13 @@ function areBrowserShipsSunk(){
     }
     
     if (browserShipsLeft === 0) {
-        messageElement.textContent = 'Поздравляем, вы победили!';
+        messageElement.textContent = 'Поздравляю, вы победили!';
         messageElement.classList.add('active');
-        return true; // Все корабли потоплены
+        return true;
     }
 
     return false;
 }
-
 function startGame() {
     isGameStarted = true;
     messageElement.textContent = '';
